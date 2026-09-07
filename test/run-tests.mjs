@@ -21,5 +21,5 @@ r=await knowledgeQueryHandler({method:'POST',body:JSON.stringify({question:''})}
 r=await knowledgeQueryHandler({method:'POST',body:'{bad json'});assert.equal(r.status,400);pass('invalid JSON rejected');
 r=await knowledgeQueryHandler({method:'POST',body:JSON.stringify({question:'x',sources:['bogus']})});assert.equal(r.status,400);pass('invalid source rejected');
 // Integration with mocked network + OpenAI connector by replacing the module's SDK is not possible without a loader; validate disabled-provider behavior end-to-end.
-r=await knowledgeQueryHandler({method:'POST',body:JSON.stringify({question:'How do I learn Python?',sources:['youtube','github','web','official_docs','images']})});assert.equal(r.status,200);assert.equal(r.body.ok,true);assert.equal(r.body.engineVersion,'2.1.0-free');assert(r.body.connectorStatus.length>=5);assert.equal(r.body.aiStatus,'disabled');pass('orchestrator disabled-provider integration');
+r=await knowledgeQueryHandler({method:'POST',body:JSON.stringify({question:'How do I learn Python?',sources:['youtube','github','web','official_docs','images']})});assert.equal(r.status,200);assert.equal(r.body.ok,true);assert.equal(r.body.engineVersion,'2.1.1-free');assert(r.body.connectorStatus.length>=5);assert.equal(r.body.aiStatus,'disabled');pass('orchestrator disabled-provider integration');
 console.log(`ALL ${n} TESTS PASSED`);
