@@ -1,0 +1,14 @@
+{
+  "name": "ai-hub-pro-knowledge-backend",
+  "version": "2.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node test/run-tests.mjs",
+    "start": "node src/server.mjs",
+    "e2e:local": "node test/e2e-gate.mjs"
+  },
+  "dependencies": {
+    "openai": "^6.0.0"
+  }
+}

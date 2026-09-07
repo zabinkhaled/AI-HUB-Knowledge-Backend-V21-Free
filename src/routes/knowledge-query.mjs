@@ -1,0 +1,2 @@
+import {runKnowledgeQuery} from '../core/orchestrator.mjs';
+export async function knowledgeQueryHandler(request){if(request.method!=='POST')return{status:405,body:{error:'Method not allowed'}};try{const body=typeof request.body==='string'?JSON.parse(request.body):(request.body||{});const result=await runKnowledgeQuery(body);return{status:200,body:result}}catch(error){const bad=error instanceof SyntaxError || /Invalid question|Invalid sources/.test(error.message||'');return{status:bad?400:500,body:{error:error.message||'Knowledge query failed'}}}}
