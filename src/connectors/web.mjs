@@ -21,7 +21,7 @@ async function searchTavily({query,allowedDomains=[],maxResults=8,includeImages=
   if(!key)return{connector:includeImages?'images':'web',status:'disabled',results:[],reason:'TAVILY_API_KEY is not configured'};
   const body={query,search_depth:process.env.TAVILY_SEARCH_DEPTH||'basic',max_results:Math.min(maxResults,20),include_answer:false,include_raw_content:false,include_images:!!includeImages};
   if(allowedDomains.length)body.include_domains=allowedDomains.slice(0,100);
-  const r=await fetchWithTimeout('https://api.tavily.com/search',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(body)},timeoutMs);
+  const r=await fetchWithTimeout('https://api.tavily.com/search',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json','Authorization':`Bearer ${key}`},body:JSON.stringify(body)},timeoutMs);
   if(!r.ok){
     const text=await r.text().catch(()=> '');
     throw new Error(`Tavily API ${r.status}${text?`: ${text.slice(0,300)}`:''}`);
