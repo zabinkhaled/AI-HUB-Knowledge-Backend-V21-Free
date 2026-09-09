@@ -1,45 +1,367 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI HUB Pro - Frontend</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #17182a;
-            color: #f7f8ff;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        h1 { color: #7c5cff; }
-        .status { padding: 10px; background: #101221; border-radius: 5px; margin: 20px 0; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI HUB — Knowledge Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0D1117;
+    --surface:#12181f;
+    --surface-2:#161B22;
+    --border:#262c35;
+    --text:#E6EDF3;
+    --text-muted:#8B949E;
+    --teal:#2DD4BF;
+    --teal-dim:#1a3d38;
+    --amber:#F0B429;
+    --red:#F0654A;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',system-ui,sans-serif;
+    line-height:1.55;
+    min-height:100vh;
+  }
+  ::selection{background:var(--teal-dim);color:var(--teal);}
+
+  .wrap{max-width:720px;margin:0 auto;padding:64px 24px 96px;}
+
+  header.hero{margin-bottom:40px;}
+  .kicker{
+    display:flex;align-items:center;gap:10px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;color:var(--text-muted);
+    margin-bottom:18px;
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 3px var(--teal-dim);}
+  h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:2.4rem;
+    line-height:1.15;
+    margin:0 0 14px;
+    letter-spacing:-0.01em;
+  }
+  .lede{color:var(--text-muted);font-size:1.05rem;max-width:56ch;margin:0;}
+
+  .search-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:20px;
+    margin-top:36px;
+  }
+  textarea{
+    width:100%;
+    background:transparent;
+    border:none;
+    outline:none;
+    resize:none;
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    font-size:1.05rem;
+    min-height:56px;
+    padding:0 0 14px;
+  }
+  textarea::placeholder{color:#565f6b;}
+
+  .row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:16px;}
+  .sources{display:flex;gap:8px;flex-wrap:wrap;}
+  .chip{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:13px;color:var(--text-muted);
+    border:1px solid var(--border);
+    border-radius:999px;
+    padding:6px 12px;
+    cursor:pointer;
+    user-select:none;
+    transition:border-color .15s, color .15s, background .15s;
+  }
+  .chip input{display:none;}
+  .chip.active{color:var(--teal);border-color:var(--teal);background:var(--teal-dim);}
+
+  button.ask{
+    background:var(--teal);
+    color:#04201c;
+    border:none;
+    border-radius:8px;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600;
+    font-size:0.95rem;
+    padding:11px 22px;
+    cursor:pointer;
+    transition:filter .15s, transform .1s;
+    white-space:nowrap;
+  }
+  button.ask:hover{filter:brightness(1.08);}
+  button.ask:active{transform:scale(0.98);}
+  button.ask:disabled{opacity:0.5;cursor:not-allowed;}
+
+  .status-line{
+    display:none;
+    align-items:center;gap:10px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;color:var(--text-muted);
+    margin-top:24px;
+  }
+  .status-line.visible{display:flex;}
+  .scan{
+    width:16px;height:16px;border-radius:50%;
+    border:2px solid var(--teal-dim);
+    border-top-color:var(--teal);
+    animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  #results{margin-top:32px;}
+  .result-enter{animation:rise .45s ease both;}
+  @keyframes rise{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+  .answer-card{
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:24px;
+    background:var(--surface);
+  }
+  .answer-card h2{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:1.15rem;
+    margin:0 0 12px;
+  }
+  .answer-card p{margin:0 0 12px;color:#dbe3ea;}
+  .answer-card p:last-child{margin-bottom:0;}
+
+  .meta-row{
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    margin-top:20px;padding-top:16px;border-top:1px solid var(--border);
+    font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-muted);
+  }
+  .meta-row span.tag{color:var(--teal);}
+
+  .section-label{
+    font-size:13px;color:var(--text-muted);
+    margin:28px 0 12px;
+  }
+
+  .citation-list, .source-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;}
+  .citation-item, .source-item{
+    display:flex;align-items:flex-start;gap:10px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:12px 14px;
+    background:var(--surface-2);
+    text-decoration:none;
+    color:var(--text);
+    transition:border-color .15s;
+  }
+  .citation-item:hover, .source-item:hover{border-color:#3a4350;}
+  .badge-official{
+    flex-shrink:0;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    color:#1a1206;
+    background:var(--amber);
+    border-radius:4px;
+    padding:2px 6px;
+    margin-top:2px;
+  }
+  .item-title{font-size:14px;font-weight:500;margin-bottom:2px;}
+  .item-source{font-size:12px;color:var(--text-muted);}
+
+  .connector-grid{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+  .connector-pill{
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+    display:flex;align-items:center;gap:6px;
+    border:1px solid var(--border);border-radius:6px;
+    padding:5px 9px;color:var(--text-muted);
+  }
+  .connector-pill .dot{width:6px;height:6px;box-shadow:none;}
+  .connector-pill.ok .dot{background:var(--teal);}
+  .connector-pill.error .dot{background:var(--red);}
+  .connector-pill.disabled .dot{background:#4a5260;}
+
+  .error-box{
+    border:1px solid #4a2620;
+    background:#1c110d;
+    color:#ffb4a0;
+    border-radius:var(--radius);
+    padding:18px 20px;
+    font-size:14px;
+  }
+  .error-box strong{display:block;margin-bottom:4px;font-family:'Space Grotesk',sans-serif;color:#ff8a6b;}
+
+  footer{margin-top:64px;font-size:12px;color:#4a5260;font-family:'JetBrains Mono',monospace;}
+
+  @media (max-width:520px){
+    h1{font-size:1.9rem;}
+    .wrap{padding:40px 18px 72px;}
+  }
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>🚀 AI HUB Pro - Frontend</h1>
-        <div class="status">
-            <p><strong>✅ Frontend is live!</strong></p>
-            <p>Backend API: <span id="backend-status">Testing connection...</span></p>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="kicker"><span class="dot"></span>AI HUB KNOWLEDGE ENGINE</div>
+    <h1>Ask once. Get an answer backed by real, verified sources.</h1>
+    <p class="lede">Every claim below is traced back to official docs, GitHub, YouTube, or the open web — nothing is invented.</p>
+  </header>
+
+  <form id="ask-form">
+    <div class="search-card">
+      <textarea id="question" placeholder="Ask about Python, Docker, Git, or any dev topic…" required></textarea>
+      <div class="row">
+        <div class="sources" id="sources">
+          <label class="chip active" data-source="web"><input type="checkbox" checked>Web</label>
+          <label class="chip active" data-source="official_docs"><input type="checkbox" checked>Official Docs</label>
+          <label class="chip active" data-source="youtube"><input type="checkbox" checked>YouTube</label>
+          <label class="chip active" data-source="github"><input type="checkbox" checked>GitHub</label>
         </div>
+        <button type="submit" class="ask" id="ask-btn">Ask</button>
+      </div>
+    </div>
+  </form>
+
+  <div class="status-line" id="status-line">
+    <span class="scan"></span>
+    <span id="status-text">Searching sources…</span>
+  </div>
+
+  <div id="results"></div>
+
+  <footer>AI HUB Pro Knowledge Backend · v2.1.1-free</footer>
+</div>
+
+<script>
+const API_URL = window.AI_HUB_API_URL || 'https://ai-hub-knowledge-backend.onrender.com/api/knowledge/query';
+
+const form = document.getElementById('ask-form');
+const questionEl = document.getElementById('question');
+const askBtn = document.getElementById('ask-btn');
+const statusLine = document.getElementById('status-line');
+const statusText = document.getElementById('status-text');
+const resultsEl = document.getElementById('results');
+const chips = document.querySelectorAll('.chip');
+
+chips.forEach(chip => {
+  chip.addEventListener('click', (e) => {
+    e.preventDefault();
+    const input = chip.querySelector('input');
+    input.checked = !input.checked;
+    chip.classList.toggle('active', input.checked);
+  });
+});
+
+function selectedSources(){
+  return Array.from(chips).filter(c => c.classList.contains('active')).map(c => c.dataset.source);
+}
+
+const statusMessages = [
+  'Searching sources…',
+  'Verifying citations…',
+  'Synthesizing an answer…'
+];
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const question = questionEl.value.trim();
+  const sources = selectedSources();
+  if(!question) return;
+  if(sources.length === 0){
+    resultsEl.innerHTML = renderError('No sources selected', 'Pick at least one source to search.');
+    return;
+  }
+
+  askBtn.disabled = true;
+  resultsEl.innerHTML = '';
+  statusLine.classList.add('visible');
+
+  let step = 0;
+  statusText.textContent = statusMessages[0];
+  const stepTimer = setInterval(() => {
+    step = (step + 1) % statusMessages.length;
+    statusText.textContent = statusMessages[step];
+  }, 3500);
+
+  try{
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({question, language: 'auto', mode: 'text', sources})
+    });
+    const data = await res.json();
+    clearInterval(stepTimer);
+    statusLine.classList.remove('visible');
+
+    if(!res.ok || data.error){
+      resultsEl.innerHTML = renderError('Request failed', data.error || `Server returned ${res.status}`);
+      return;
+    }
+    resultsEl.innerHTML = renderResult(data);
+  }catch(err){
+    clearInterval(stepTimer);
+    statusLine.classList.remove('visible');
+    resultsEl.innerHTML = renderError('Could not reach the engine', 'The backend may be waking up from sleep — wait a moment and try again.');
+  }finally{
+    askBtn.disabled = false;
+  }
+});
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+function renderError(title, detail){
+  return `<div class="answer-card error-box result-enter">
+    <strong>${escapeHtml(title)}</strong>
+    ${escapeHtml(detail)}
+  </div>`;
+}
+
+function renderResult(data){
+  const hasAnswer = data.answer && data.answer.trim().length > 0;
+  const connectorPills = (data.connectorStatus || []).map(c =>
+    `<span class="connector-pill ${c.status}"><span class="dot"></span>${escapeHtml(c.connector)} · ${c.resultCount ?? 0}</span>`
+  ).join('');
+
+  const citations = (data.citations || []).map(c => `
+    <a class="citation-item" href="${escapeHtml(c.url)}" target="_blank" rel="noopener">
+      ${c.official ? '<span class="badge-official">OFFICIAL</span>' : ''}
+      <div>
+        <div class="item-title">${escapeHtml(c.title || c.url)}</div>
+        <div class="item-source">${escapeHtml(c.source || '')}</div>
+      </div>
+    </a>`).join('');
+
+  const paragraphs = hasAnswer
+    ? data.answer.split('\n').filter(p => p.trim()).map(p => `<p>${escapeHtml(p)}</p>`).join('')
+    : `<p style="color:var(--text-muted)">No confident answer could be generated from the retrieved sources for this question. Try rephrasing, or check the connector status below.</p>`;
+
+  return `
+    <div class="answer-card result-enter">
+      <h2>${escapeHtml(data.title || 'Answer')}</h2>
+      ${paragraphs}
+      <div class="meta-row">
+        <span>Provider: <span class="tag">${escapeHtml(data.aiProvider || 'none')}</span></span>
+        <span>Model: <span class="tag">${escapeHtml(data.aiModel || '—')}</span></span>
+        <span>Verified: <span class="tag">${data.verification?.verified ?? 0}/${data.verification?.checked ?? 0}</span></span>
+      </div>
+      <div class="connector-grid">${connectorPills}</div>
     </div>
 
-    <script>
-        // اختبر الاتصال بـ Backend
-        const backendUrl = 'https://your-render-app.onrender.com'; // غيّر هذا برابط Render الفعلي
-        
-        fetch(backendUrl + '/health')
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('backend-status').textContent = '✅ Connected: ' + JSON.stringify(data);
-            })
-            .catch(err => {
-                document.getElementById('backend-status').textContent = '❌ Connection failed: ' + err.message;
-            });
-    </script>
+    ${citations ? `<div class="section-label">Citations</div><div class="citation-list">${citations}</div>` : ''}
+  `;
+}
+</script>
 </body>
 </html>
