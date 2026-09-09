@@ -1,20 +1,16 @@
 import http from 'node:http';
 import {knowledgeQueryHandler} from './routes/knowledge-query.mjs';
-const port=Number(process.env.PORT||10000);
-const host='0.0.0.0';
-function send(res,status,body,headers={}){
-  res.writeHead(status,{'content-type':'application/json; charset=utf-8',...headers});
-  res.end(JSON.stringify(body));
-}
-const server=http.createServer(async (req,res)=>{
-  try{
-    if((req.method==='GET'||req.method==='HEAD') && req.url==='/health') return send(res,200,{ok:true,service:'ai-hub-pro-knowledge-backend',engineVersion:'2.0.0'});
-    if((req.method==='GET'||req.method==='HEAD') && req.url==='/e2e-config') return send(res,200,{ok:true,required:['web','youtube','github','official_docs'],engineVersion:'2.0.0'});
-    if(req.url!=='/api/knowledge/query') return send(res,404,{error:'Not found'});
-    let raw='';
-    for await (const chunk of req) raw+=chunk;
-    const out=await knowledgeQueryHandler({method:req.method,body:raw});
-    return send(res,out.status,out.body);
-  }catch(e){return send(res,500,{error:e?.message||'Internal error'});}
-});
+const port=Number(process.env.PORT||10000),host='0.0.0.0';
+const allowedOrigin=process.env.CORS_ALLOWED_ORIGIN||'*';
+function corsHeaders(){return{'Access-Control-Allow-Origin':allowedOrigin,'Access-Control-Allow-Methods':'GET,POST,HEAD,OPTIONS','Access-Control-Allow-Headers':'Content-Type','Access-Control-Max-Age':'86400'};}
+function send(res,status,body){res.writeHead(status,{'content-type':'application/json; charset=utf-8',...corsHeaders()});res.end(JSON.stringify(body));}
+async function readBody(req){let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>100000)throw new Error('Request body too large')}return raw;}
+const server=http.createServer(async(req,res)=>{try{
+  if(req.method==='OPTIONS'){res.writeHead(204,corsHeaders());return res.end();}
+  const url=new URL(req.url,`http://${req.headers.host||'localhost'}`);
+  if((req.method==='GET'||req.method==='HEAD')&&url.pathname==='/health')return send(res,200,{ok:true,service:'ai-hub-pro-knowledge-backend',engineVersion:'2.1.1-free'});
+  if((req.method==='GET'||req.method==='HEAD')&&url.pathname==='/e2e-config')return send(res,200,{ok:true,required:['web','official_docs','youtube','github'],aiProviders:['openrouter','groq'],searchProvider:'tavily',engineVersion:'2.1.1-free'});
+  if(req.method==='POST'&&url.pathname==='/api/knowledge/query'){const out=await knowledgeQueryHandler({method:req.method,body:await readBody(req)});return send(res,out.status,out.body)}
+  return send(res,404,{error:'Not found'})
+}catch(e){console.error(e);return send(res,500,{error:e.message||'Internal server error'})}});
 server.listen(port,host,()=>console.log(`AI HUB Pro Knowledge Backend listening on ${host}:${port}`));
