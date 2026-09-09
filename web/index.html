@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI HUB Pro - Frontend</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #17182a;
+            color: #f7f8ff;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 { color: #7c5cff; }
+        .status { padding: 10px; background: #101221; border-radius: 5px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 AI HUB Pro - Frontend</h1>
+        <div class="status">
+            <p><strong>✅ Frontend is live!</strong></p>
+            <p>Backend API: <span id="backend-status">Testing connection...</span></p>
+        </div>
+    </div>
+
+    <script>
+        // اختبر الاتصال بـ Backend
+        const backendUrl = 'https://your-render-app.onrender.com'; // غيّر هذا برابط Render الفعلي
+        
+        fetch(backendUrl + '/health')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('backend-status').textContent = '✅ Connected: ' + JSON.stringify(data);
+            })
+            .catch(err => {
+                document.getElementById('backend-status').textContent = '❌ Connection failed: ' + err.message;
+            });
+    </script>
+</body>
+</html>
