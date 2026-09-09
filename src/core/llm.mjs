@@ -41,11 +41,38 @@ async function groq({question,language,mode,sources}){
   return{status:'ok',data:parsed,responseId:data.id||null,provider:'groq',model:data.model||model};
 }
 
+function sleep(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
+
+const RETRY_ATTEMPTS=Number(process.env.AI_RETRY_ATTEMPTS||3);
+const RETRY_DELAY_MS=Number(process.env.AI_RETRY_DELAY_MS||800);
+
+async function callWithRetries(providerName,fn){
+  let last=null;
+  for(let attempt=1;attempt<=RETRY_ATTEMPTS;attempt++){
+    try{
+      const result=await fn();
+      if(!result)return null;
+      if(result.status==='ok')return result;
+      last=result;
+    }catch(e){
+      last={status:'error',data:null,reason:e.message,provider:providerName};
+    }
+    if(attempt<RETRY_ATTEMPTS)await sleep(RETRY_DELAY_MS*attempt);
+  }
+  return last;
+}
+
 export async function synthesize({question,language,mode,sources}){
   const providers=(process.env.AI_PROVIDER||'auto').toLowerCase();
   const order=providers==='openrouter'?['openrouter']:providers==='groq'?['groq']:['openrouter','groq'];
   let last=null;
-  for(const p of order){try{const result=p==='openrouter'?await openRouter({question,language,mode,sources}):await groq({question,language,mode,sources});if(!result)continue;result.data=clean(result.data,sources);if(result.status==='ok'&&result.data.answer)return result;last=result}catch(e){last={status:'error',data:null,reason:e.message,provider:p}}}
+  for(const p of order){
+    const result=await callWithRetries(p,()=>p==='openrouter'?openRouter({question,language,mode,sources}):groq({question,language,mode,sources}));
+    if(!result)continue;
+    result.data=clean(result.data,sources);
+    if(result.status==='ok'&&result.data.answer)return result;
+    last=result;
+  }
   if(process.env.OPENAI_API_KEY&&providers==='openai')return{status:'disabled',data:null,reason:'Paid OpenAI mode is intentionally opt-in; set AI_PROVIDER=openai only after implementing a funded provider'};
   return last||{status:'disabled',data:null,reason:'No free AI provider is configured. Add OPENROUTER_API_KEY or GROQ_API_KEY.'};
 }
